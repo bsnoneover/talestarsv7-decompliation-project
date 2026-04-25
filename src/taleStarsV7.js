@@ -1,3 +1,5 @@
+const Mods = require("./mods/mods");
+
 function init() {
   Global.Offsets = {
     libg: {
@@ -663,6 +665,268 @@ function init() {
       return Config;
     }
   };
+  function yt() {
+    Mods.XrayAutoshoot.update();
+    Mods.AimBot.update();
+    Mods.AutoDodge.update();
+    Mods.AutoCharge.update();
+    Mods.WillowMod.update();
+    Mods.LolaMod.update();
+  }
+  function Qt() {
+    let t = ptr(Offsets.libg.GameStateManager.getInstance());
+    if (!t) {
+      if (t || t.toInt32() != 0) {
+        return false;
+      }
+      const e = t.add(72).readPointer();
+      return e || e.toInt32() == 0 && ptr(e);
+    }
+  }
+  function Mt() {
+    if (mt) {
+      return;
+    }
+    mt = true;
+    if (LogicDefines.isPlatformAndroid()) {
+      let t = Interceptor.attach(Process.findModuleByName("libandroid.so").getExportByName("AAssetManager_open"), {
+        onEnter(e) {
+          t.detach();
+          TaleUtils.File.setAAssetManagerPtr(e[0]);
+          AssetsManager.initAssets();
+        }
+      });
+    } else {
+      AssetsManager.initAssets();
+    }
+    Interceptor.attach(Offsets.libg.AboutScreen.ctor, {
+      onEnter(t) {
+        this.a1 = t[0];
+      },
+      onLeave(t) {
+        Offsets.libg.MovieClip.setTextAndScaleIfNecessary(this.a1.add(400).readPointer(), StringUtils.getScPtr(LocalizationStatic.creditsText), 0, 0);
+      }
+    });
+    Mods.BattleServerChanger.update();
+    Mods.ShowEnemyAmmo.update();
+    Mods.ChromaticName.update();
+    Mods.VisualSpectators.update();
+    Mods.SpectateAsBrawltv.update();
+    Mods.AntiAutoSuperAndShoot.update();
+    Mods.HideUltiAiming.update();
+    Mods.EmptyPin.update();
+    Mods.SeeEnemyBrawlers.update();
+    Mods.NameChanger.update();
+    Mods.RandomSpraySpam.update();
+    Mods.AntiAFK.update();
+    Mods.RemoveBlackBorders.update();
+    Mods.AntiCensor.update();
+    Mods.ThemeChanger.update();
+    Mods.AutoSpinner.update();
+    Mods.CopyPlayerTag.update();
+    Mods.AutoPlayAgain.update();
+    yt();
+    Interceptor.attach(Offsets.libg.MessageManager.receiveMessage, {
+      onEnter(t) {
+        let e = t[1];
+        if (new NativeFunction(e.readPointer().add(40).readPointer(), "int", ["pointer"])(e) == 20103) {
+          if (e.add(144).readInt() === 8) {
+            e.add(192).writePointer(StringUtils.getScPtr(Localization.updateTitle));
+            e.add(184).writePointer(StringUtils.getScPtr("t.me/talebrawl"));
+          }
+        }
+      }
+    });
+    Interceptor.attach(Offsets.libg.NativeFont.formatString, {
+      onEnter(t) {
+        t[4] = ptr(1);
+      }
+    });
+    Interceptor.attach(Offsets.libg.PopupBase.ctor, {
+      onEnter(t) {
+        const o = ["seasonend_popup", "create_name_popup", "age_gate_dialog", "age_gate_number_pad_dialog", "about_screen"];
+        const e = t[2];
+        const n = StringUtils.readStringFromStringObject(e);
+        if (Config.staticBackgroundEnabled) {
+          if (!o.includes(n)) {
+            t[5] = StringUtils.createNewStringObject(DataTables.Theme.FileName);
+            t[6] = StringUtils.createNewStringObject(DataTables.Theme.ExportName);
+          }
+        }
+        if (n === "about_screen") {
+          t[5] = StringUtils.createNewStringObject("sc/ui.sc");
+          t[6] = StringUtils.createNewStringObject("bg_shape_01_atlasgenerator_texture_luminance_alpha");
+        }
+      }
+    });
+    const t = Interceptor.attach(Offsets.libg.ResourceListener.addFile, {
+      onEnter(e) {
+        if (LogicDefines.isPlatformiOS()) {
+          return;
+        }
+      }
+    });
+    Interceptor.attach(Offsets.libg.BattleScreen.updateCameraParameters, {
+      onEnter(t) {
+        t[0].add(2220).writeU32(CameraSettings.Mode);
+      }
+    });
+    Interceptor.attach(Offsets.libg.FramerateManager.setSegment, {
+      onEnter(t) {
+        t[1] = ptr(2);
+      },
+      onLeave(t) {
+        Offsets.libg.FramerateManager.setFPS(Config.maxFps);
+      }
+    });
+    Interceptor.attach(Offsets.libg.BattleMode.enter, {
+      onLeave(t) {
+        setTimeout(() => {
+          IsInBattle = true;
+        }, 1000);
+      }
+    });
+    Interceptor.attach(Offsets.libg.BattleMode.exit, {
+      onLeave(t) {
+        IsInBattle = false;
+      }
+    });
+    Interceptor.attach(Offsets.libg.TeamManager.onTeamMessage, {
+      onLeave(t) {
+        IsInTeam = true;
+      }
+    });
+    Interceptor.attach(Offsets.libg.TeamManager.onTeamLeftMessage, {
+      onLeave(t) {
+        IsInTeam = false;
+      }
+    });
+    Interceptor.attach(Offsets.libg.GameMain.update, {
+      onEnter(t) {
+        for (let t of bt) {
+          try {
+            t();
+          } catch (_) {
+            Logger.clog("");
+          }
+        }
+      }
+    });
+    Interceptor.attach(Offsets.libg.CombatHUD.ctor, {
+      onEnter(t) {
+        this.a1 = t[0];
+      },
+      onLeave(t) {
+        if (A.activated === 0) {
+          return;
+        }
+      }
+    });
+    Interceptor.attach(Offsets.libg.GUI.closePopup, {
+      onEnter(t) {
+        PopupState.numOfPopups--;
+        if (PopupState.numOfPopups <= 0) {
+          PopupState.numOfPopups = 0;
+          ModMenuButton.addModMenuButton();
+          for (let t in TemporaryConfig.csvMods) {
+            if (TemporaryConfig.csvMods[t] !== Config.csvMods[t] || Mods.SkinChanger.isSkinUnlocked) {
+              setTimeout(function () {
+                Offsets.libg.GUI.showFloater_helper(Localization.gameClosing);
+              }, 500);
+            }
+            if (TemporaryConfig.csvMods[t] === Config.csvMods[t]) {
+              if (Mods.SkinChanger.isSkinUnlocked) {
+                setTimeout(function () {
+                  Offsets.native.kill();
+                }, 3000);
+              }
+            }
+          }
+        }
+        if (IsConfigUpdated) {
+          IsConfigUpdated = false;
+        }
+      }
+    });
+    Interceptor.attach(Offsets.libg.GameButton.buttonPressed, {
+      onEnter(t) {
+        let t_1 = 0;
+        let e = t_1[0].toInt32();
+        if (t_1 >= ButtonRegistry.length) {
+          return;
+        }
+        let n = ButtonRegistry[t_1];
+        if (n.btn.ptr.toInt32() !== e) {
+          return;
+        }
+        try {
+          n.callback(n.btn);
+        } catch (_) {
+          Logger.clog("");
+        }
+      }
+    });
+    Interceptor.replace(Offsets.libg.TeamSearchPopup.customButtonTapped, new NativeCallback(function (t, e, n) {
+      let o = t.add(416).readPointer().add(72);
+      const a = CustomInputRegistry.get(n);
+      let i = StringUtils.readStringFromStringObject(o);
+      if (a) {
+        if (typeof a.callback == "function") {
+          try {
+            a.callback(i);
+          } catch {
+            Logger.clog("");
+          }
+        }
+        Offsets.libg.GenericPopup.onHudCloseButton(t);
+        CustomInputRegistry.delete(n);
+        return;
+      }
+      Offsets.libg.TeamSearchPopup.customButtonTapped(t, e, n);
+    }, "void", ["pointer", "pointer", "int"]));
+    Interceptor.attach(Offsets.libg.HomePage.ctor, {
+      onEnter(t) {
+        this.a1 = t[0];
+        Logger.clog("");
+      },
+      onLeave(t) {
+        const e = this.a1.add(112).readPointer();
+        Logger.clog("");
+        if (ModMenuButton.modMenuButton !== null) {
+          ModMenuButton.removeModMenuButton();
+        }
+        if (ModMenuButton.modMenuButton !== null) {
+          ModMenuButton.addModMenuButton();
+        }
+        if (ht === 0) {
+          AccountInfo.ID = Offsets.libg.GameMain.getAccountIdCtor(Offsets.libg.GameMain.getInstanceCtor());
+          AccountInfo.TAG = IDUtils.getAccountTag(AccountInfo.ID);
+          ModMenuButton.addModMenuButton();
+          CreditText.addCreditText();
+          if (Config.selectedBattleServer !== null) {
+            Mods.BattleServerChanger.getLatencyResults();
+          }
+          ht = true;
+        }
+        if (ht === 0) {
+          ht;
+        }
+        new Image({
+          sprite: e
+        }, AssetsManager.getImagePath("talestarsv65icon"), 130, 102, 10, 10);
+        new Image({
+          sprite: e
+        }, AssetsManager.getImagePath("telegramicon"), 130, 122, 10, 10);
+        new Image({
+          sprite: e
+        }, AssetsManager.getImagePath("discordicon"), 130, 142, 10, 10);
+        new Text({
+          sprite: e
+        }, 145, 90, LocalizationStatic.lobbyInfoText, 1.5);
+      }
+    });
+  }
+
   if (A.isInEarlyAccess !== 0) {
     initTaleServer();
     Mt();
