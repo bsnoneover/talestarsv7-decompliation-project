@@ -8,3 +8,5 @@ The project won't fully compile as I didn't finish it with adding enough "requir
 # Credits:
 
 - maximosso - for the original decompilation (quickjs-dihcompiler by @maximosso)
+
+삭제 되기 전에 바로 포크하기 ㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅㅅ
